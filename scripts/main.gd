@@ -1,10 +1,10 @@
 extends Node2D
-## KLEINER TECHNISCHER TEST: Schalter -> Tor -> Kristall -> Leuchtturm.
-## Keine externen Assets, kein fertiges Spiel. Ziel ist ein funktionierender Kernablauf.
+## Schritt 6: Erkunder-Insel mit Kamera. Gleicher Interaktionsablauf wie der getestete Prototyp.
+## Spielwelt: 2048 x 1280 Pixel. Dieser Code steuert weiterhin den Testablauf.
 
-const SWITCH_POS = Vector2(340, 205)
-const CRYSTAL_POS = Vector2(867, 320)
-const LIGHTHOUSE_POS = Vector2(1030, 320)
+const SWITCH_POS = Vector2(530, 370)
+const CRYSTAL_POS = Vector2(1460, 640)
+const LIGHTHOUSE_POS = Vector2(1790, 640)
 const INTERACTION_RADIUS = 72.0
 # Schritt 4: erste Pixel-Art-Visualisierung. Die Mechanik bleibt unverändert.
 const SWITCH_OFF = preload("res://assets/switch_off.png")
@@ -23,16 +23,16 @@ var crystal_collected := false
 var level_completed := false
 
 func _ready() -> void:
-	# Begrenzung der Szene
-	_create_wall(Vector2(576, 9), Vector2(1130, 18))
-	_create_wall(Vector2(576, 639), Vector2(1130, 18))
-	_create_wall(Vector2(9, 324), Vector2(18, 630))
-	_create_wall(Vector2(1143, 324), Vector2(18, 630))
+	# Außengrenzen der größeren Insel (Weltmaß 2048 x 1280 Pixel).
+	_create_wall(Vector2(1024, 8), Vector2(2048, 16))
+	_create_wall(Vector2(1024, 1272), Vector2(2048, 16))
+	_create_wall(Vector2(8, 640), Vector2(16, 1280))
+	_create_wall(Vector2(2040, 640), Vector2(16, 1280))
 
-	# Trennwand und Durchgang; Schalter öffnet das Tor im Durchgang.
-	_create_wall(Vector2(610, 145), Vector2(26, 270))
-	_create_wall(Vector2(610, 509), Vector2(26, 260))
-	gate_body = _create_wall(Vector2(610, 325), Vector2(26, 110))
+	# Durchgang in der Mitte. Alle Interaktionen bleiben wie vorher.
+	_create_wall(Vector2(1024, 298), Vector2(26, 564))
+	_create_wall(Vector2(1024, 982), Vector2(26, 564))
+	gate_body = _create_wall(Vector2(1024, 640), Vector2(26, 120))
 	_update_objective()
 	queue_redraw()
 
@@ -102,15 +102,15 @@ func _create_wall(center: Vector2, size: Vector2) -> StaticBody2D:
 	return wall
 
 func _draw() -> void:
-	# Schritt 5: Inselboden und Bäume werden jetzt als eigene Godot-Szene
-	# mit echtem TileMapLayer unter dem Main-Node dargestellt.
+	# Inselboden und Bäume bleiben in der editierbaren TileMapLayer-Szene.
+	# Die Kamera folgt der Spielfigur in scenes/main.tscn.
 
 	# Trennwand mit interaktivem Tor (Kollisionen bleiben im vorhandenen Code).
-	draw_rect(Rect2(597, 10, 26, 270), Color("#304957"))
-	draw_rect(Rect2(597, 379, 26, 260), Color("#304957"))
+	draw_rect(Rect2(1011, 16, 26, 564), Color("#304957"))
+	draw_rect(Rect2(1011, 700, 26, 564), Color("#304957"))
 	if not gate_open:
-		draw_rect(Rect2(597, 270, 26, 110), Color("#b6573b"))
-		draw_rect(Rect2(603, 275, 14, 100), Color("#e08d58"))
+		draw_rect(Rect2(1011, 580, 26, 120), Color("#b6573b"))
+		draw_rect(Rect2(1017, 585, 14, 110), Color("#e08d58"))
 
 	draw_texture(SWITCH_ON if gate_open else SWITCH_OFF, SWITCH_POS - Vector2(24, 24))
 

@@ -12,7 +12,16 @@ script = ExtResource("1_main")
 z_index = -1
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
-position = Vector2(140, 330)
+position = Vector2(255, 640)
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+enabled = true
+limit_left = 0
+limit_top = 0
+limit_right = 2048
+limit_bottom = 1280
+position_smoothing_enabled = true
+position_smoothing_speed = 5.5
 
 [node name="UI" type="CanvasLayer" parent="."]
 
