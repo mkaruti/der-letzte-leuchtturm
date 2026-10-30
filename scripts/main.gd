@@ -7,7 +7,6 @@ const CRYSTAL_POS = Vector2(867, 320)
 const LIGHTHOUSE_POS = Vector2(1030, 320)
 const INTERACTION_RADIUS = 72.0
 # Schritt 4: erste Pixel-Art-Visualisierung. Die Mechanik bleibt unverändert.
-const ISLAND_BACKGROUND = preload("res://assets/island_background.png")
 const SWITCH_OFF = preload("res://assets/switch_off.png")
 const SWITCH_ON = preload("res://assets/switch_on.png")
 const CRYSTAL_SPRITE = preload("res://assets/crystal.png")
@@ -103,9 +102,8 @@ func _create_wall(center: Vector2, size: Vector2) -> StaticBody2D:
 	return wall
 
 func _draw() -> void:
-	# Phase 1: Eine bewusst einfache statische Inselgrafik. Später ersetzen
-	# wir sie durch echte editierbare TileMapLayer und separate Objekt-Szenen.
-	draw_texture(ISLAND_BACKGROUND, Vector2.ZERO)
+	# Schritt 5: Inselboden und Bäume werden jetzt als eigene Godot-Szene
+	# mit echtem TileMapLayer unter dem Main-Node dargestellt.
 
 	# Trennwand mit interaktivem Tor (Kollisionen bleiben im vorhandenen Code).
 	draw_rect(Rect2(597, 10, 26, 270), Color("#304957"))
