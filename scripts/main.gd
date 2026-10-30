@@ -14,8 +14,7 @@ const LIGHTHOUSE_OFF = preload("res://assets/lighthouse_unlit.png")
 const LIGHTHOUSE_ON = preload("res://assets/lighthouse_lit.png")
 
 @onready var player: CharacterBody2D = $Player
-@onready var objective_label: Label = $UI/Objective
-@onready var message_label: Label = $UI/Message
+@onready var game_ui: GameUI = $UI
 
 var gate_body: StaticBody2D
 var gate_open := false
@@ -44,17 +43,16 @@ func _input(event: InputEvent) -> void:
 
 func _process(_delta: float) -> void:
 	if level_completed:
-		message_label.text = "Test geschafft! Schalter, Tor, Kristall und Leuchtturm funktionieren."
+		game_ui.show_completion_message()
 		return
 
-	if not gate_open and _is_near(SWITCH_POS):
-		message_label.text = "E drücken: Schalter aktivieren"
-	elif gate_open and not crystal_collected and _is_near(CRYSTAL_POS):
-		message_label.text = "E drücken: Kristall einsammeln"
-	elif crystal_collected and _is_near(LIGHTHOUSE_POS):
-		message_label.text = "E drücken: Kristall im Leuchtturm einsetzen"
-	else:
-		message_label.text = "WASD / Pfeiltasten: bewegen    |    E: interagieren"
+	game_ui.update_interaction_hint(
+		gate_open,
+		crystal_collected,
+		_is_near(SWITCH_POS),
+		_is_near(CRYSTAL_POS),
+		_is_near(LIGHTHOUSE_POS)
+	)
 
 func _interact() -> void:
 	if not gate_open and _is_near(SWITCH_POS):
@@ -79,14 +77,7 @@ func _is_near(point: Vector2) -> bool:
 	return player.global_position.distance_to(point) <= INTERACTION_RADIUS
 
 func _update_objective() -> void:
-	if level_completed:
-		objective_label.text = "Ziel erreicht: der Leuchtturm leuchtet!"
-	elif crystal_collected:
-		objective_label.text = "Ziel: Kristall zum Leuchtturm bringen"
-	elif gate_open:
-		objective_label.text = "Ziel: Kristall hinter dem Tor einsammeln"
-	else:
-		objective_label.text = "Ziel: Schalter im Westen finden und Tor öffnen"
+	game_ui.update_objective(gate_open, crystal_collected, level_completed)
 
 func _create_wall(center: Vector2, size: Vector2) -> StaticBody2D:
 	var wall := StaticBody2D.new()
