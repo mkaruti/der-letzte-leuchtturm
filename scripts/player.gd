@@ -1,4 +1,5 @@
 extends CharacterBody2D
+const LIO_SPRITE = preload("res://assets/lio_sprite.png")
 ## Ein bewusst kleiner CharacterBody2D für die erste technische Probe.
 ## Später durch eine Sprite-Animation erweiterbar.
 
@@ -22,8 +23,4 @@ func _physics_process(_delta: float) -> void:
         queue_redraw()
 
 func _draw() -> void:
-    # Platzhalter-Grafik, bewusst ohne externe PNG-Dateien.
-    draw_circle(Vector2(0, 4), 18.0, Color("#17293c"))
-    draw_circle(Vector2.ZERO, 14.0, Color("#ffd56b"))
-    draw_circle(Vector2(0, -5), 6.0, Color("#243e59"))
-    draw_circle(Vector2(5, -5), 2.0, Color("#ffffff"))
+    draw_texture(LIO_SPRITE, Vector2(-16, -16))
