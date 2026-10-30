@@ -5,6 +5,8 @@ extends Node2D
 const SWITCH_POS = Vector2(530, 370)
 const LIGHTHOUSE_POS = Vector2(1790, 640)
 const INTERACTION_RADIUS = 72.0
+# Der bisherige Insel-Kristall bleibt ein technischer Prototyp.
+const PROTOTYPE_CRYSTAL_ID: StringName = &"prototype"
 # Schritt 4: erste Pixel-Art-Visualisierung. Die Mechanik bleibt unverändert.
 const SWITCH_OFF = preload("res://assets/switch_off.png")
 const SWITCH_ON = preload("res://assets/switch_on.png")
@@ -15,7 +17,6 @@ const LIGHTHOUSE_ON = preload("res://assets/lighthouse_lit.png")
 @onready var game_ui: GameUI = $UI
 @onready var gate: IslandGate = $Gate
 @onready var crystal: CollectibleCrystal = $Crystal
-var level_completed := false
 
 func _ready() -> void:
 	# Außengrenzen der größeren Insel (Weltmaß 2048 x 1280 Pixel).
@@ -28,6 +29,9 @@ func _ready() -> void:
 	_create_wall(Vector2(1024, 298), Vector2(26, 564))
 	_create_wall(Vector2(1024, 982), Vector2(26, 564))
 	# Das Tor ist jetzt eine eigene Szene ($Gate).
+	# Beim Rueckweg aus einem Dungeon bleibt ein eingesammelter Kristall weg.
+	if GameState.has_crystal(PROTOTYPE_CRYSTAL_ID):
+		crystal.collect()
 	_update_objective()
 	queue_redraw()
 
@@ -38,7 +42,7 @@ func _input(event: InputEvent) -> void:
 				_interact()
 
 func _process(_delta: float) -> void:
-	if level_completed:
+	if GameState.is_crystal_delivered(PROTOTYPE_CRYSTAL_ID):
 		game_ui.show_completion_message()
 		return
 
@@ -58,20 +62,21 @@ func _interact() -> void:
 		return
 
 	if gate.is_open and not crystal.is_collected and _is_near(crystal.global_position):
-		if crystal.collect():
+		if GameState.collect_crystal(PROTOTYPE_CRYSTAL_ID):
+			crystal.collect()
 			_update_objective()
 		return
 
-	if crystal.is_collected and not level_completed and _is_near(LIGHTHOUSE_POS):
-		level_completed = true
-		_update_objective()
-		queue_redraw()
+	if crystal.is_collected and not GameState.is_crystal_delivered(PROTOTYPE_CRYSTAL_ID) and _is_near(LIGHTHOUSE_POS):
+		if GameState.deliver_crystal(PROTOTYPE_CRYSTAL_ID):
+			_update_objective()
+			queue_redraw()
 
 func _is_near(point: Vector2) -> bool:
 	return player.global_position.distance_to(point) <= INTERACTION_RADIUS
 
 func _update_objective() -> void:
-	game_ui.update_objective(gate.is_open, crystal.is_collected, level_completed)
+	game_ui.update_objective(gate.is_open, crystal.is_collected, GameState.is_crystal_delivered(PROTOTYPE_CRYSTAL_ID))
 
 func _create_wall(center: Vector2, size: Vector2) -> StaticBody2D:
 	var wall := StaticBody2D.new()
@@ -99,4 +104,4 @@ func _draw() -> void:
 
 	# Kristall-Sprite und Einsammelzustand liegen jetzt in $Crystal.
 
-	draw_texture(LIGHTHOUSE_ON if level_completed else LIGHTHOUSE_OFF, LIGHTHOUSE_POS - Vector2(64, 64))
+	draw_texture(LIGHTHOUSE_ON if GameState.is_crystal_delivered(PROTOTYPE_CRYSTAL_ID) else LIGHTHOUSE_OFF, LIGHTHOUSE_POS - Vector2(64, 64))
