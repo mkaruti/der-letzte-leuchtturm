@@ -15,9 +15,7 @@ const LIGHTHOUSE_ON = preload("res://assets/lighthouse_lit.png")
 
 @onready var player: CharacterBody2D = $Player
 @onready var game_ui: GameUI = $UI
-
-var gate_body: StaticBody2D
-var gate_open := false
+@onready var gate: IslandGate = $Gate
 var crystal_collected := false
 var level_completed := false
 
@@ -31,7 +29,7 @@ func _ready() -> void:
 	# Durchgang in der Mitte. Alle Interaktionen bleiben wie vorher.
 	_create_wall(Vector2(1024, 298), Vector2(26, 564))
 	_create_wall(Vector2(1024, 982), Vector2(26, 564))
-	gate_body = _create_wall(Vector2(1024, 640), Vector2(26, 120))
+	# Das Tor ist jetzt eine eigene Szene ($Gate).
 	_update_objective()
 	queue_redraw()
 
@@ -47,7 +45,7 @@ func _process(_delta: float) -> void:
 		return
 
 	game_ui.update_interaction_hint(
-		gate_open,
+		gate.is_open,
 		crystal_collected,
 		_is_near(SWITCH_POS),
 		_is_near(CRYSTAL_POS),
@@ -55,14 +53,13 @@ func _process(_delta: float) -> void:
 	)
 
 func _interact() -> void:
-	if not gate_open and _is_near(SWITCH_POS):
-		gate_open = true
-		gate_body.queue_free()
+	if not gate.is_open and _is_near(SWITCH_POS):
+		gate.open_gate()
 		_update_objective()
 		queue_redraw()
 		return
 
-	if gate_open and not crystal_collected and _is_near(CRYSTAL_POS):
+	if gate.is_open and not crystal_collected and _is_near(CRYSTAL_POS):
 		crystal_collected = true
 		_update_objective()
 		queue_redraw()
@@ -77,7 +74,7 @@ func _is_near(point: Vector2) -> bool:
 	return player.global_position.distance_to(point) <= INTERACTION_RADIUS
 
 func _update_objective() -> void:
-	game_ui.update_objective(gate_open, crystal_collected, level_completed)
+	game_ui.update_objective(gate.is_open, crystal_collected, level_completed)
 
 func _create_wall(center: Vector2, size: Vector2) -> StaticBody2D:
 	var wall := StaticBody2D.new()
@@ -99,11 +96,9 @@ func _draw() -> void:
 	# Trennwand mit interaktivem Tor (Kollisionen bleiben im vorhandenen Code).
 	draw_rect(Rect2(1011, 16, 26, 564), Color("#304957"))
 	draw_rect(Rect2(1011, 700, 26, 564), Color("#304957"))
-	if not gate_open:
-		draw_rect(Rect2(1011, 580, 26, 120), Color("#b6573b"))
-		draw_rect(Rect2(1017, 585, 14, 110), Color("#e08d58"))
+	# Das Tor zeichnet sich selbst (scenes/island_gate.tscn).
 
-	draw_texture(SWITCH_ON if gate_open else SWITCH_OFF, SWITCH_POS - Vector2(24, 24))
+	draw_texture(SWITCH_ON if gate.is_open else SWITCH_OFF, SWITCH_POS - Vector2(24, 24))
 
 	if not crystal_collected:
 		draw_texture(CRYSTAL_SPRITE, CRYSTAL_POS - Vector2(24, 24))

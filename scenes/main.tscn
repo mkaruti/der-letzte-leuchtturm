@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
@@ -7,6 +7,7 @@
 
 [ext_resource type="Script" path="res://scripts/island_collision.gd" id="4_collision"]
 [ext_resource type="Script" path="res://scripts/game_ui.gd" id="5_game_ui"]
+[ext_resource type="PackedScene" path="res://scenes/island_gate.tscn" id="6_gate"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
@@ -14,6 +15,9 @@ script = ExtResource("1_main")
 [node name="IslandGround" parent="." instance=ExtResource("3_island")]
 z_index = -1
 script = ExtResource("4_collision")
+
+[node name="Gate" parent="." instance=ExtResource("6_gate")]
+position = Vector2(1024, 640)
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector2(255, 640)
