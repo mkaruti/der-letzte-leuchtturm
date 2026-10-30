@@ -1,0 +1,36 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector2(140, 330)
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Title" type="Label" parent="UI"]
+offset_left = 22.0
+offset_top = 16.0
+offset_right = 900.0
+offset_bottom = 54.0
+theme_override_font_sizes/font_size = 27
+text = "DER LETZTE LEUCHTTURM  |  PROTOTYP"
+
+[node name="Objective" type="Label" parent="UI"]
+offset_left = 24.0
+offset_top = 58.0
+offset_right = 1080.0
+offset_bottom = 91.0
+theme_override_font_sizes/font_size = 20
+text = "Ziel: den Schalter aktivieren"
+
+[node name="Message" type="Label" parent="UI"]
+offset_left = 24.0
+offset_top = 588.0
+offset_right = 1100.0
+offset_bottom = 632.0
+theme_override_font_sizes/font_size = 21
+text = "WASD / Pfeiltasten: Bewegung | E: Interagieren"

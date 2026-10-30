@@ -1,0 +1,10 @@
+# Godot 4.1+ / macOS / generated files
+.godot/
+.DS_Store
+*.translation
+# IDE caches
+.idea/
+.vscode/
+# Local exports
+build/
+dist/
