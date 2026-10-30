@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/collectible_crystal.gd" id="1_crystal_script"]
+[ext_resource type="Texture2D" path="res://assets/crystal.png" id="2_crystal_texture"]
+
+[node name="Crystal" type="Node2D"]
+script = ExtResource("1_crystal_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_crystal_texture")

@@ -3,20 +3,18 @@ extends Node2D
 ## Spielwelt: 2048 x 1280 Pixel. Dieser Code steuert weiterhin den Testablauf.
 
 const SWITCH_POS = Vector2(530, 370)
-const CRYSTAL_POS = Vector2(1460, 640)
 const LIGHTHOUSE_POS = Vector2(1790, 640)
 const INTERACTION_RADIUS = 72.0
 # Schritt 4: erste Pixel-Art-Visualisierung. Die Mechanik bleibt unverändert.
 const SWITCH_OFF = preload("res://assets/switch_off.png")
 const SWITCH_ON = preload("res://assets/switch_on.png")
-const CRYSTAL_SPRITE = preload("res://assets/crystal.png")
 const LIGHTHOUSE_OFF = preload("res://assets/lighthouse_unlit.png")
 const LIGHTHOUSE_ON = preload("res://assets/lighthouse_lit.png")
 
 @onready var player: CharacterBody2D = $Player
 @onready var game_ui: GameUI = $UI
 @onready var gate: IslandGate = $Gate
-var crystal_collected := false
+@onready var crystal: CollectibleCrystal = $Crystal
 var level_completed := false
 
 func _ready() -> void:
@@ -46,9 +44,9 @@ func _process(_delta: float) -> void:
 
 	game_ui.update_interaction_hint(
 		gate.is_open,
-		crystal_collected,
+		crystal.is_collected,
 		_is_near(SWITCH_POS),
-		_is_near(CRYSTAL_POS),
+		_is_near(crystal.global_position),
 		_is_near(LIGHTHOUSE_POS)
 	)
 
@@ -59,13 +57,12 @@ func _interact() -> void:
 		queue_redraw()
 		return
 
-	if gate.is_open and not crystal_collected and _is_near(CRYSTAL_POS):
-		crystal_collected = true
-		_update_objective()
-		queue_redraw()
+	if gate.is_open and not crystal.is_collected and _is_near(crystal.global_position):
+		if crystal.collect():
+			_update_objective()
 		return
 
-	if crystal_collected and not level_completed and _is_near(LIGHTHOUSE_POS):
+	if crystal.is_collected and not level_completed and _is_near(LIGHTHOUSE_POS):
 		level_completed = true
 		_update_objective()
 		queue_redraw()
@@ -74,7 +71,7 @@ func _is_near(point: Vector2) -> bool:
 	return player.global_position.distance_to(point) <= INTERACTION_RADIUS
 
 func _update_objective() -> void:
-	game_ui.update_objective(gate.is_open, crystal_collected, level_completed)
+	game_ui.update_objective(gate.is_open, crystal.is_collected, level_completed)
 
 func _create_wall(center: Vector2, size: Vector2) -> StaticBody2D:
 	var wall := StaticBody2D.new()
@@ -100,7 +97,6 @@ func _draw() -> void:
 
 	draw_texture(SWITCH_ON if gate.is_open else SWITCH_OFF, SWITCH_POS - Vector2(24, 24))
 
-	if not crystal_collected:
-		draw_texture(CRYSTAL_SPRITE, CRYSTAL_POS - Vector2(24, 24))
+	# Kristall-Sprite und Einsammelzustand liegen jetzt in $Crystal.
 
 	draw_texture(LIGHTHOUSE_ON if level_completed else LIGHTHOUSE_OFF, LIGHTHOUSE_POS - Vector2(64, 64))
