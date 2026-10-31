@@ -19,8 +19,9 @@ var island_gate_open: bool = false
 var returning_from_forest: bool = false
 var returning_from_cave: bool = false
 
-# Die Loesung des ersten Waldrätsels bleibt beim Szenenwechsel erhalten.
+# Gelöste Rätsel bleiben beim Szenenwechsel erhalten (nicht auf Festplatte).
 var forest_puzzle_solved: bool = false
+var cave_puzzle_solved: bool = false
 
 
 func collect_crystal(crystal_id: StringName) -> bool:
@@ -66,6 +67,13 @@ func solve_forest_puzzle() -> void:
 	progress_changed.emit()
 
 
+func solve_cave_puzzle() -> void:
+	if cave_puzzle_solved:
+		return
+	cave_puzzle_solved = true
+	progress_changed.emit()
+
+
 func reset_progress() -> void:
 	_collected_crystals.clear()
 	_delivered_crystals.clear()
@@ -74,6 +82,7 @@ func reset_progress() -> void:
 	returning_from_forest = false
 	returning_from_cave = false
 	forest_puzzle_solved = false
+	cave_puzzle_solved = false
 	progress_changed.emit()
 
 
