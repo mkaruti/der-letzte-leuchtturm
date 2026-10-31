@@ -1,5 +1,5 @@
 extends Node2D
-## Insel mit Schalter, Wald-Zugang und Leuchtturm.
+## Insel mit Schalter, Wald- und Höhlenzugang sowie Leuchtturm.
 ## Der alte Testkristall ist entfernt. Erst drei echte Dungeon-Kristalle
 ## bringen den Leuchtturm zum Leuchten.
 
@@ -9,6 +9,9 @@ const INTERACTION_RADIUS = 72.0
 # Erster Waldeingang auf der Westseite der Insel. Keine vorhandenen Bäume versetzen.
 const FOREST_ENTRANCE_POS = Vector2(650, 640)
 const FOREST_SCENE_PATH = "res://scenes/forest.tscn"
+# Höhleneingang östlich des Tores, mit freier Fläche vor dem Portal.
+const CAVE_ENTRANCE_POS: Vector2 = Vector2(1430, 780)
+const CAVE_SCENE_PATH: String = "res://scenes/cave.tscn"
 # Erster echter Dungeon-Kristall: Wald.
 const FOREST_CRYSTAL_ID: StringName = &"forest"
 # Statische Inselgrafiken: Schalter und Leuchtturm.
@@ -32,12 +35,13 @@ func _ready() -> void:
 	_create_wall(Vector2(1024, 298), Vector2(26, 564))
 	_create_wall(Vector2(1024, 982), Vector2(26, 564))
 	# Das Tor ist jetzt eine eigene Szene ($Gate).
-	# Nach dem Waldbesuch denselben Spielfortschritt und Torzustand wiederherstellen.
-	if GameState.returning_from_forest:
+	# Der Rückweg aus Wald und Höhle stellt Position und offenen Torzustand wieder her.
+	if GameState.returning_from_forest or GameState.returning_from_cave:
 		player.global_position = GameState.island_return_position
 		if GameState.island_gate_open:
 			gate.open_gate()
 		GameState.returning_from_forest = false
+		GameState.returning_from_cave = false
 	_update_objective()
 	queue_redraw()
 
@@ -50,6 +54,9 @@ func _input(event: InputEvent) -> void:
 func _process(_delta: float) -> void:
 	if _is_near(FOREST_ENTRANCE_POS):
 		game_ui.show_forest_entrance_hint()
+		return
+	if _is_near(CAVE_ENTRANCE_POS):
+		game_ui.show_cave_entrance_hint()
 		return
 
 	if _is_near(LIGHTHOUSE_POS):
@@ -76,6 +83,13 @@ func _interact() -> void:
 		var result := get_tree().change_scene_to_file(FOREST_SCENE_PATH)
 		if result != OK:
 			push_error("Wald-Dungeon konnte nicht geöffnet werden (Fehler %s)." % result)
+		return
+
+	if _is_near(CAVE_ENTRANCE_POS):
+		GameState.begin_cave_visit(CAVE_ENTRANCE_POS + Vector2(0, 98), gate.is_open)
+		var result := get_tree().change_scene_to_file(CAVE_SCENE_PATH)
+		if result != OK:
+			push_error("Höhlen-Dungeon konnte nicht geöffnet werden (Fehler %s)." % result)
 		return
 
 	if not gate.is_open and _is_near(SWITCH_POS):
@@ -133,5 +147,12 @@ func _draw() -> void:
 	draw_rect(Rect2(FOREST_ENTRANCE_POS - Vector2(31, 26), Vector2(62, 52)), Color("#35754c"))
 	draw_rect(Rect2(FOREST_ENTRANCE_POS - Vector2(21, 15), Vector2(42, 40)), Color("#1b382a"))
 	draw_circle(FOREST_ENTRANCE_POS + Vector2(0, -9), 7.0, Color("#c6e898"))
+
+	# Höhleneingang: dunkler Felsbogen mit bläulich schimmerndem Inneren.
+	draw_rect(Rect2(CAVE_ENTRANCE_POS - Vector2(45, 39), Vector2(90, 79)), Color("#222e40"))
+	draw_rect(Rect2(CAVE_ENTRANCE_POS - Vector2(36, 31), Vector2(72, 63)), Color("#708098"))
+	draw_rect(Rect2(CAVE_ENTRANCE_POS - Vector2(27, 22), Vector2(54, 55)), Color("#192436"))
+	draw_rect(Rect2(CAVE_ENTRANCE_POS + Vector2(-18, 3), Vector2(36, 6)), Color("#2f5670"))
+	draw_circle(CAVE_ENTRANCE_POS + Vector2(0, -13), 6.0, Color("#91c9d7"))
 
 	draw_texture(LIGHTHOUSE_ON if GameState.are_all_dungeon_crystals_delivered() else LIGHTHOUSE_OFF, LIGHTHOUSE_POS - Vector2(64, 64))

@@ -53,3 +53,7 @@ func show_forest_entrance_hint() -> void:
 
 func show_default_hint() -> void:
 	message_label.text = "WASD / Pfeiltasten: bewegen    |    E: interagieren"
+
+
+func show_cave_entrance_hint() -> void:
+	message_label.text = "E drücken: Die Höhle betreten"

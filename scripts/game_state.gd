@@ -5,17 +5,19 @@ extends Node
 
 signal progress_changed
 
-# Die drei kuenftigen Dungeon-Kristalle. Der aktuelle Insel-Testkristall
-# hat bewusst die ID "prototype" und zaehlt NICHT zu diesen drei.
+# Die drei echten Dungeon-Kristalle: Wald ist bereits spielbar,
+# Höhle und Ruinen folgen in späteren Schritten.
 const DUNGEON_CRYSTAL_IDS = [&"forest", &"cave", &"ruins"]
 
 var _collected_crystals: Dictionary = {}
 var _delivered_crystals: Dictionary = {}
 
-# Rueckweg aus dem Wald; der Kristallfortschritt bleibt davon unberuehrt.
+# Rückkehr auf die Insel. Beide Dungeons benutzen dieselbe Rückkehrposition.
+# Kristalle und Rätselstatus bleiben beim Szenenwechsel unverändert.
 var island_return_position: Vector2 = Vector2(255, 640)
 var island_gate_open: bool = false
 var returning_from_forest: bool = false
+var returning_from_cave: bool = false
 
 # Die Loesung des ersten Waldrätsels bleibt beim Szenenwechsel erhalten.
 var forest_puzzle_solved: bool = false
@@ -70,6 +72,7 @@ func reset_progress() -> void:
 	island_return_position = Vector2(255, 640)
 	island_gate_open = false
 	returning_from_forest = false
+	returning_from_cave = false
 	forest_puzzle_solved = false
 	progress_changed.emit()
 
@@ -78,7 +81,19 @@ func begin_forest_visit(return_position: Vector2, gate_is_open: bool) -> void:
 	island_return_position = return_position
 	island_gate_open = gate_is_open
 	returning_from_forest = false
+	returning_from_cave = false
 
 
 func finish_forest_visit() -> void:
 	returning_from_forest = true
+
+
+func begin_cave_visit(return_position: Vector2, gate_is_open: bool) -> void:
+	island_return_position = return_position
+	island_gate_open = gate_is_open
+	returning_from_cave = false
+	returning_from_forest = false
+
+
+func finish_cave_visit() -> void:
+	returning_from_cave = true
