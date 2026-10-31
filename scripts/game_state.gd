@@ -17,6 +17,9 @@ var island_return_position: Vector2 = Vector2(255, 640)
 var island_gate_open: bool = false
 var returning_from_forest: bool = false
 
+# Die Loesung des ersten Waldrätsels bleibt beim Szenenwechsel erhalten.
+var forest_puzzle_solved: bool = false
+
 
 func collect_crystal(crystal_id: StringName) -> bool:
 	if crystal_id == &"" or _collected_crystals.has(crystal_id):
@@ -54,12 +57,20 @@ func are_all_dungeon_crystals_delivered() -> bool:
 	return get_delivered_dungeon_crystal_count() == DUNGEON_CRYSTAL_IDS.size()
 
 
+func solve_forest_puzzle() -> void:
+	if forest_puzzle_solved:
+		return
+	forest_puzzle_solved = true
+	progress_changed.emit()
+
+
 func reset_progress() -> void:
 	_collected_crystals.clear()
 	_delivered_crystals.clear()
 	island_return_position = Vector2(255, 640)
 	island_gate_open = false
 	returning_from_forest = false
+	forest_puzzle_solved = false
 	progress_changed.emit()
 
 

@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/forest.gd" id="1_forest"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://scenes/forest_ground.tscn" id="3_ground"]
 [ext_resource type="Script" path="res://scripts/island_collision.gd" id="4_collision"]
+[ext_resource type="PackedScene" path="res://scenes/forest_rune_stone.tscn" id="5_rune"]
 
 [node name="Forest" type="Node2D"]
 script = ExtResource("1_forest")
@@ -11,6 +12,19 @@ script = ExtResource("1_forest")
 [node name="ForestGround" parent="." instance=ExtResource("3_ground")]
 z_index = -1
 script = ExtResource("4_collision")
+
+[node name="Runes" type="Node2D" parent="."]
+
+[node name="Sun" parent="Runes" instance=ExtResource("5_rune")]
+position = Vector2(500, 295)
+
+[node name="Leaf" parent="Runes" instance=ExtResource("5_rune")]
+position = Vector2(780, 295)
+kind = 1
+
+[node name="Moon" parent="Runes" instance=ExtResource("5_rune")]
+position = Vector2(640, 392)
+kind = 2
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector2(640, 595)
@@ -40,7 +54,7 @@ offset_top = 58.0
 offset_right = 1150.0
 offset_bottom = 91.0
 theme_override_font_sizes/font_size = 20
-text = "Erkunde den Wald. Das Wald-Rätsel folgt als Nächstes."
+text = "Wald: Rätsel des Steinkreises lösen (0/3 Runen)"
 
 [node name="Message" type="Label" parent="UI"]
 anchor_top = 1.0
@@ -50,4 +64,4 @@ offset_top = -64.0
 offset_right = 1120.0
 offset_bottom = -20.0
 theme_override_font_sizes/font_size = 21
-text = "WASD / Pfeiltasten: bewegen  |  Ausgang im Süden"
+text = "WASD / Pfeiltasten: bewegen | Hinweis am Steinkreis"
