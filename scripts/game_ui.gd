@@ -37,3 +37,7 @@ func update_interaction_hint(
 
 func show_completion_message() -> void:
 	message_label.text = "Test geschafft! Schalter, Tor, Kristall und Leuchtturm funktionieren."
+
+
+func show_forest_entrance_hint() -> void:
+	message_label.text = "E drücken: Den Wald betreten"

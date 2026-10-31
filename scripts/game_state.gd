@@ -12,6 +12,11 @@ const DUNGEON_CRYSTAL_IDS = [&"forest", &"cave", &"ruins"]
 var _collected_crystals: Dictionary = {}
 var _delivered_crystals: Dictionary = {}
 
+# Rueckweg aus dem Wald; der Kristallfortschritt bleibt davon unberuehrt.
+var island_return_position: Vector2 = Vector2(255, 640)
+var island_gate_open: bool = false
+var returning_from_forest: bool = false
+
 
 func collect_crystal(crystal_id: StringName) -> bool:
 	if crystal_id == &"" or _collected_crystals.has(crystal_id):
@@ -52,4 +57,17 @@ func are_all_dungeon_crystals_delivered() -> bool:
 func reset_progress() -> void:
 	_collected_crystals.clear()
 	_delivered_crystals.clear()
+	island_return_position = Vector2(255, 640)
+	island_gate_open = false
+	returning_from_forest = false
 	progress_changed.emit()
+
+
+func begin_forest_visit(return_position: Vector2, gate_is_open: bool) -> void:
+	island_return_position = return_position
+	island_gate_open = gate_is_open
+	returning_from_forest = false
+
+
+func finish_forest_visit() -> void:
+	returning_from_forest = true

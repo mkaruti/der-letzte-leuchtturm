@@ -5,6 +5,9 @@ extends Node2D
 const SWITCH_POS = Vector2(530, 370)
 const LIGHTHOUSE_POS = Vector2(1790, 640)
 const INTERACTION_RADIUS = 72.0
+# Erster Waldeingang auf der Westseite der Insel. Keine vorhandenen Bäume versetzen.
+const FOREST_ENTRANCE_POS = Vector2(650, 640)
+const FOREST_SCENE_PATH = "res://scenes/forest.tscn"
 # Der bisherige Insel-Kristall bleibt ein technischer Prototyp.
 const PROTOTYPE_CRYSTAL_ID: StringName = &"prototype"
 # Schritt 4: erste Pixel-Art-Visualisierung. Die Mechanik bleibt unverändert.
@@ -29,6 +32,12 @@ func _ready() -> void:
 	_create_wall(Vector2(1024, 298), Vector2(26, 564))
 	_create_wall(Vector2(1024, 982), Vector2(26, 564))
 	# Das Tor ist jetzt eine eigene Szene ($Gate).
+	# Nach dem Waldbesuch denselben Spielfortschritt und Torzustand wiederherstellen.
+	if GameState.returning_from_forest:
+		player.global_position = GameState.island_return_position
+		if GameState.island_gate_open:
+			gate.open_gate()
+		GameState.returning_from_forest = false
 	# Beim Rueckweg aus einem Dungeon bleibt ein eingesammelter Kristall weg.
 	if GameState.has_crystal(PROTOTYPE_CRYSTAL_ID):
 		crystal.collect()
@@ -42,6 +51,9 @@ func _input(event: InputEvent) -> void:
 				_interact()
 
 func _process(_delta: float) -> void:
+	if _is_near(FOREST_ENTRANCE_POS):
+		game_ui.show_forest_entrance_hint()
+		return
 	if GameState.is_crystal_delivered(PROTOTYPE_CRYSTAL_ID):
 		game_ui.show_completion_message()
 		return
@@ -55,6 +67,12 @@ func _process(_delta: float) -> void:
 	)
 
 func _interact() -> void:
+	if _is_near(FOREST_ENTRANCE_POS):
+		GameState.begin_forest_visit(FOREST_ENTRANCE_POS + Vector2(0, 96), gate.is_open)
+		var result := get_tree().change_scene_to_file(FOREST_SCENE_PATH)
+		if result != OK:
+			push_error("Wald-Dungeon konnte nicht geöffnet werden (Fehler %s)." % result)
+		return
 	if not gate.is_open and _is_near(SWITCH_POS):
 		gate.open_gate()
 		_update_objective()
@@ -102,6 +120,11 @@ func _draw() -> void:
 
 	draw_texture(SWITCH_ON if gate.is_open else SWITCH_OFF, SWITCH_POS - Vector2(24, 24))
 
+	# Waldeingang: gruener Steinbogen mit einem warmen Lichtpunkt.
+	draw_rect(Rect2(FOREST_ENTRANCE_POS - Vector2(40, 35), Vector2(80, 70)), Color("#163f2e"))
+	draw_rect(Rect2(FOREST_ENTRANCE_POS - Vector2(31, 26), Vector2(62, 52)), Color("#35754c"))
+	draw_rect(Rect2(FOREST_ENTRANCE_POS - Vector2(21, 15), Vector2(42, 40)), Color("#1b382a"))
+	draw_circle(FOREST_ENTRANCE_POS + Vector2(0, -9), 7.0, Color("#c6e898"))
 	# Kristall-Sprite und Einsammelzustand liegen jetzt in $Crystal.
 
 	draw_texture(LIGHTHOUSE_ON if GameState.is_crystal_delivered(PROTOTYPE_CRYSTAL_ID) else LIGHTHOUSE_OFF, LIGHTHOUSE_POS - Vector2(64, 64))
