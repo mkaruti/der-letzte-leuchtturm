@@ -1,6 +1,6 @@
 extends Node2D
 ## Schritt 13: Der alte Steinkreis. Drei Runen in der Reihenfolge
-## Sonne -> Blatt -> Mond aktivieren. Das Ergebnis merkt sich GameState.
+## Sonne -> Blatt -> Mond aktivieren. Danach erscheint der Waldkristall.
 
 const WORLD_SIZE: Vector2 = Vector2(1280, 800)
 const EXIT_POS: Vector2 = Vector2(640, 735)
@@ -8,6 +8,8 @@ const EXIT_RADIUS: float = 76.0
 const ALTAR_POS: Vector2 = Vector2(640, 200)
 const ALTAR_RADIUS: float = 74.0
 const RUNE_RADIUS: float = 64.0
+const CRYSTAL_RADIUS: float = 70.0
+const FOREST_CRYSTAL_ID: StringName = &"forest"
 const ISLAND_SCENE_PATH: String = "res://scenes/main.tscn"
 
 @onready var player: CharacterBody2D = $Player
@@ -16,6 +18,7 @@ const ISLAND_SCENE_PATH: String = "res://scenes/main.tscn"
 @onready var sun_rune: ForestRuneStone = $Runes/Sun
 @onready var leaf_rune: ForestRuneStone = $Runes/Leaf
 @onready var moon_rune: ForestRuneStone = $Runes/Moon
+@onready var forest_crystal: CollectibleCrystal = $ForestCrystal
 
 var _runes: Array[ForestRuneStone] = []
 var _next_rune_index: int = 0
@@ -33,6 +36,10 @@ func _ready() -> void:
 		_next_rune_index = _runes.size()
 		for rune in _runes:
 			rune.set_lit(true)
+
+	# Der Kristall wird erst nach der Lösung sichtbar und bleibt nach dem
+	# Einsammeln auch bei erneutem Betreten des Waldes verschwunden.
+	_refresh_forest_crystal()
 
 	# Die bestehenden, unsichtbaren Weltgrenzen bleiben unverändert.
 	_create_boundary(Vector2(640, 8), Vector2(1280, 16))
@@ -52,6 +59,10 @@ func _process(delta: float) -> void:
 
 	if _is_near(EXIT_POS, EXIT_RADIUS):
 		message_label.text = "E drücken: Zur Insel zurückkehren"
+		return
+
+	if _can_collect_forest_crystal() and _is_near(forest_crystal.global_position, CRYSTAL_RADIUS):
+		message_label.text = "E drücken: Waldkristall einsammeln"
 		return
 
 	var rune_index := _nearest_rune_index()
@@ -77,6 +88,14 @@ func _input(event: InputEvent) -> void:
 		if result != OK:
 			GameState.returning_from_forest = false
 			push_error("Insel konnte nicht geladen werden (Fehler %s)." % result)
+		return
+
+	if _can_collect_forest_crystal() and _is_near(forest_crystal.global_position, CRYSTAL_RADIUS):
+		if GameState.collect_crystal(FOREST_CRYSTAL_ID):
+			forest_crystal.collect()
+			_refresh_forest_crystal()
+			_update_objective()
+			_show_feedback("Waldkristall eingesammelt! Kehre zum Ausgang im Süden zurück.", 4.0)
 		return
 
 	var rune_index := _nearest_rune_index()
@@ -122,6 +141,7 @@ func _activate_rune(index: int) -> void:
 
 	if _next_rune_index == _runes.size():
 		GameState.solve_forest_puzzle()
+		_refresh_forest_crystal()
 		_update_objective()
 		queue_redraw()
 		_show_feedback("Rätsel gelöst! Der alte Steinkreis beginnt zu leuchten!", 5.0)
@@ -130,10 +150,24 @@ func _activate_rune(index: int) -> void:
 
 
 func _update_objective() -> void:
-	if GameState.forest_puzzle_solved:
-		objective_label.text = "Wald: Der Steinkreis ist aktiviert!"
+	if GameState.has_crystal(FOREST_CRYSTAL_ID):
+		objective_label.text = "Wald: Kristall gefunden! Kehre zur Insel zurück."
+	elif GameState.forest_puzzle_solved:
+		objective_label.text = "Wald: Sammle den Kristall am leuchtenden Steinkreis ein."
 	else:
 		objective_label.text = "Wald: Rätsel des Steinkreises lösen (%d/3 Runen)" % _next_rune_index
+
+
+func _can_collect_forest_crystal() -> bool:
+	return GameState.forest_puzzle_solved and not GameState.has_crystal(FOREST_CRYSTAL_ID)
+
+
+func _refresh_forest_crystal() -> void:
+	if GameState.has_crystal(FOREST_CRYSTAL_ID):
+		forest_crystal.collect()
+		forest_crystal.hide()
+	else:
+		forest_crystal.visible = GameState.forest_puzzle_solved
 
 
 func _show_feedback(text: String, seconds: float) -> void:
