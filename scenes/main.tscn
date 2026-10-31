@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
@@ -8,7 +8,6 @@
 [ext_resource type="Script" path="res://scripts/island_collision.gd" id="4_collision"]
 [ext_resource type="Script" path="res://scripts/game_ui.gd" id="5_game_ui"]
 [ext_resource type="PackedScene" path="res://scenes/island_gate.tscn" id="6_gate"]
-[ext_resource type="PackedScene" path="res://scenes/collectible_crystal.tscn" id="7_crystal"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
@@ -19,9 +18,6 @@ script = ExtResource("4_collision")
 
 [node name="Gate" parent="." instance=ExtResource("6_gate")]
 position = Vector2(1024, 640)
-
-[node name="Crystal" parent="." instance=ExtResource("7_crystal")]
-position = Vector2(1460, 640)
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector2(255, 640)
@@ -44,7 +40,7 @@ offset_top = 16.0
 offset_right = 900.0
 offset_bottom = 54.0
 theme_override_font_sizes/font_size = 27
-text = "DER LETZTE LEUCHTTURM  |  PROTOTYP"
+text = "DER LETZTE LEUCHTTURM  |  INSEL"
 
 [node name="Objective" type="Label" parent="UI"]
 offset_left = 24.0
@@ -52,7 +48,7 @@ offset_top = 58.0
 offset_right = 1080.0
 offset_bottom = 91.0
 theme_override_font_sizes/font_size = 20
-text = "Ziel: den Schalter aktivieren"
+text = "Ziel: Wald erkunden und Waldkristall finden | Kristalle: 0/3"
 
 [node name="Message" type="Label" parent="UI"]
 offset_left = 24.0

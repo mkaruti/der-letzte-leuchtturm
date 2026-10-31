@@ -1,6 +1,7 @@
 extends Node2D
-## Schritt 6: Erkunder-Insel mit Kamera. Gleicher Interaktionsablauf wie der getestete Prototyp.
-## Spielwelt: 2048 x 1280 Pixel. Dieser Code steuert weiterhin den Testablauf.
+## Insel mit Schalter, Wald-Zugang und Leuchtturm.
+## Der alte Testkristall ist entfernt. Erst drei echte Dungeon-Kristalle
+## bringen den Leuchtturm zum Leuchten.
 
 const SWITCH_POS = Vector2(530, 370)
 const LIGHTHOUSE_POS = Vector2(1790, 640)
@@ -8,9 +9,9 @@ const INTERACTION_RADIUS = 72.0
 # Erster Waldeingang auf der Westseite der Insel. Keine vorhandenen Bäume versetzen.
 const FOREST_ENTRANCE_POS = Vector2(650, 640)
 const FOREST_SCENE_PATH = "res://scenes/forest.tscn"
-# Der bisherige Insel-Kristall bleibt ein technischer Prototyp.
-const PROTOTYPE_CRYSTAL_ID: StringName = &"prototype"
-# Schritt 4: erste Pixel-Art-Visualisierung. Die Mechanik bleibt unverändert.
+# Erster echter Dungeon-Kristall: Wald.
+const FOREST_CRYSTAL_ID: StringName = &"forest"
+# Statische Inselgrafiken: Schalter und Leuchtturm.
 const SWITCH_OFF = preload("res://assets/switch_off.png")
 const SWITCH_ON = preload("res://assets/switch_on.png")
 const LIGHTHOUSE_OFF = preload("res://assets/lighthouse_unlit.png")
@@ -19,7 +20,6 @@ const LIGHTHOUSE_ON = preload("res://assets/lighthouse_lit.png")
 @onready var player: CharacterBody2D = $Player
 @onready var game_ui: GameUI = $UI
 @onready var gate: IslandGate = $Gate
-@onready var crystal: CollectibleCrystal = $Crystal
 
 func _ready() -> void:
 	# Außengrenzen der größeren Insel (Weltmaß 2048 x 1280 Pixel).
@@ -38,9 +38,6 @@ func _ready() -> void:
 		if GameState.island_gate_open:
 			gate.open_gate()
 		GameState.returning_from_forest = false
-	# Beim Rueckweg aus einem Dungeon bleibt ein eingesammelter Kristall weg.
-	if GameState.has_crystal(PROTOTYPE_CRYSTAL_ID):
-		crystal.collect()
 	_update_objective()
 	queue_redraw()
 
@@ -54,17 +51,24 @@ func _process(_delta: float) -> void:
 	if _is_near(FOREST_ENTRANCE_POS):
 		game_ui.show_forest_entrance_hint()
 		return
-	if GameState.is_crystal_delivered(PROTOTYPE_CRYSTAL_ID):
-		game_ui.show_completion_message()
-		return
 
-	game_ui.update_interaction_hint(
-		gate.is_open,
-		crystal.is_collected,
-		_is_near(SWITCH_POS),
-		_is_near(crystal.global_position),
-		_is_near(LIGHTHOUSE_POS)
-	)
+	if _is_near(LIGHTHOUSE_POS):
+		if GameState.are_all_dungeon_crystals_delivered():
+			game_ui.show_completion_message()
+			return
+		if _has_undelivered_forest_crystal():
+			game_ui.show_forest_crystal_delivery_hint()
+			return
+		if GameState.is_crystal_delivered(FOREST_CRYSTAL_ID):
+			game_ui.show_forest_crystal_delivered_hint(GameState.get_delivered_dungeon_crystal_count())
+			return
+
+	if not gate.is_open and _is_near(SWITCH_POS):
+		game_ui.show_switch_hint()
+	elif _has_undelivered_forest_crystal():
+		game_ui.show_forest_crystal_carry_hint()
+	else:
+		game_ui.show_default_hint()
 
 func _interact() -> void:
 	if _is_near(FOREST_ENTRANCE_POS):
@@ -73,28 +77,32 @@ func _interact() -> void:
 		if result != OK:
 			push_error("Wald-Dungeon konnte nicht geöffnet werden (Fehler %s)." % result)
 		return
+
 	if not gate.is_open and _is_near(SWITCH_POS):
 		gate.open_gate()
 		_update_objective()
 		queue_redraw()
 		return
 
-	if gate.is_open and not crystal.is_collected and _is_near(crystal.global_position):
-		if GameState.collect_crystal(PROTOTYPE_CRYSTAL_ID):
-			crystal.collect()
-			_update_objective()
-		return
-
-	if crystal.is_collected and not GameState.is_crystal_delivered(PROTOTYPE_CRYSTAL_ID) and _is_near(LIGHTHOUSE_POS):
-		if GameState.deliver_crystal(PROTOTYPE_CRYSTAL_ID):
+	# Nur ein echter Dungeon-Kristall kann hier abgegeben werden.
+	if _has_undelivered_forest_crystal() and _is_near(LIGHTHOUSE_POS):
+		if GameState.deliver_crystal(FOREST_CRYSTAL_ID):
 			_update_objective()
 			queue_redraw()
 
 func _is_near(point: Vector2) -> bool:
 	return player.global_position.distance_to(point) <= INTERACTION_RADIUS
 
+func _has_undelivered_forest_crystal() -> bool:
+	return GameState.has_crystal(FOREST_CRYSTAL_ID) and not GameState.is_crystal_delivered(FOREST_CRYSTAL_ID)
+
 func _update_objective() -> void:
-	game_ui.update_objective(gate.is_open, crystal.is_collected, GameState.is_crystal_delivered(PROTOTYPE_CRYSTAL_ID))
+	game_ui.update_objective(
+		gate.is_open,
+		GameState.has_crystal(FOREST_CRYSTAL_ID),
+		GameState.is_crystal_delivered(FOREST_CRYSTAL_ID),
+		GameState.get_delivered_dungeon_crystal_count()
+	)
 
 func _create_wall(center: Vector2, size: Vector2) -> StaticBody2D:
 	var wall := StaticBody2D.new()
@@ -125,6 +133,5 @@ func _draw() -> void:
 	draw_rect(Rect2(FOREST_ENTRANCE_POS - Vector2(31, 26), Vector2(62, 52)), Color("#35754c"))
 	draw_rect(Rect2(FOREST_ENTRANCE_POS - Vector2(21, 15), Vector2(42, 40)), Color("#1b382a"))
 	draw_circle(FOREST_ENTRANCE_POS + Vector2(0, -9), 7.0, Color("#c6e898"))
-	# Kristall-Sprite und Einsammelzustand liegen jetzt in $Crystal.
 
-	draw_texture(LIGHTHOUSE_ON if GameState.is_crystal_delivered(PROTOTYPE_CRYSTAL_ID) else LIGHTHOUSE_OFF, LIGHTHOUSE_POS - Vector2(64, 64))
+	draw_texture(LIGHTHOUSE_ON if GameState.are_all_dungeon_crystals_delivered() else LIGHTHOUSE_OFF, LIGHTHOUSE_POS - Vector2(64, 64))

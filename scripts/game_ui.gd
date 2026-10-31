@@ -1,43 +1,55 @@
 class_name GameUI
 extends CanvasLayer
-## Darstellung von Spielziel und Interaktionshinweisen.
-## Die eigentlichen Spielzustände bleiben im Main-Skript.
+## Spielziel und Interaktionshinweise der Insel.
+## Der Leuchtturm leuchtet erst bei drei echten abgegebenen Kristallen.
 
 @onready var objective_label: Label = $Objective
 @onready var message_label: Label = $Message
 
 
-func update_objective(gate_is_open: bool, crystal_is_collected: bool, is_completed: bool) -> void:
-	if is_completed:
-		objective_label.text = "Ziel erreicht: der Leuchtturm leuchtet!"
-	elif crystal_is_collected:
-		objective_label.text = "Ziel: Kristall zum Leuchtturm bringen"
-	elif gate_is_open:
-		objective_label.text = "Ziel: Kristall hinter dem Tor einsammeln"
-	else:
-		objective_label.text = "Ziel: Schalter im Westen finden und Tor öffnen"
-
-
-func update_interaction_hint(
+func update_objective(
 	gate_is_open: bool,
-	crystal_is_collected: bool,
-	near_switch: bool,
-	near_crystal: bool,
-	near_lighthouse: bool
+	forest_crystal_collected: bool,
+	forest_crystal_delivered: bool,
+	delivered_dungeon_crystals: int
 ) -> void:
-	if not gate_is_open and near_switch:
-		message_label.text = "E drücken: Schalter aktivieren"
-	elif gate_is_open and not crystal_is_collected and near_crystal:
-		message_label.text = "E drücken: Kristall einsammeln"
-	elif crystal_is_collected and near_lighthouse:
-		message_label.text = "E drücken: Kristall im Leuchtturm einsetzen"
+	var goal_text: String
+	if delivered_dungeon_crystals == 3:
+		goal_text = "Ziel erreicht: Der Leuchtturm leuchtet!"
+	elif forest_crystal_delivered:
+		goal_text = "Wald abgeschlossen! Zwei Kristalle fehlen noch."
+	elif forest_crystal_collected and not gate_is_open:
+		goal_text = "Ziel: Schalter aktivieren und Waldkristall abgeben"
+	elif forest_crystal_collected:
+		goal_text = "Ziel: Waldkristall zum Leuchtturm bringen"
 	else:
-		message_label.text = "WASD / Pfeiltasten: bewegen    |    E: interagieren"
+		goal_text = "Ziel: Wald erkunden und Waldkristall finden"
+	objective_label.text = "%s  |  Kristalle: %d/3" % [goal_text, delivered_dungeon_crystals]
+
+
+func show_switch_hint() -> void:
+	message_label.text = "E drücken: Schalter aktivieren und Tor öffnen"
+
+
+func show_forest_crystal_delivery_hint() -> void:
+	message_label.text = "E drücken: Waldkristall im Leuchtturm einsetzen"
+
+
+func show_forest_crystal_delivered_hint(delivered_count: int) -> void:
+	message_label.text = "Waldkristall eingesetzt! Echte Kristalle: %d/3" % delivered_count
+
+
+func show_forest_crystal_carry_hint() -> void:
+	message_label.text = "Waldkristall im Gepäck. Bringe ihn zum Leuchtturm im Osten!"
 
 
 func show_completion_message() -> void:
-	message_label.text = "Test geschafft! Schalter, Tor, Kristall und Leuchtturm funktionieren."
+	message_label.text = "Alle drei Dungeon-Kristalle eingesetzt! Der Leuchtturm leuchtet."
 
 
 func show_forest_entrance_hint() -> void:
 	message_label.text = "E drücken: Den Wald betreten"
+
+
+func show_default_hint() -> void:
+	message_label.text = "WASD / Pfeiltasten: bewegen    |    E: interagieren"
